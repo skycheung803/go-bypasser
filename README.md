@@ -65,4 +65,4 @@ func main() {
 ```
 
 ## credits  
-__Coalmer__ would not have been possible without some of [these amazing projects](./go.mod): [tls-client](github.com/bogdanfinn/tls-client), [go-rod](https://github.com/go-rod/rod), [fhttp](github.com/bogdanfinn/fhttp)
+__go-bypasser__ would not have been possible without some of [these amazing projects](./go.mod): [tls-client](github.com/bogdanfinn/tls-client), [go-rod](https://github.com/go-rod/rod), [fhttp](github.com/bogdanfinn/fhttp)
