@@ -205,10 +205,11 @@ func (b *BrowserRoundTripper) RoundTrip(req *http.Request) (*http.Response, erro
 		resp.Header = http.Header{}
 
 		for k, v := range networkResponse.Headers {
+
 			resp.Header.Set(k, v.String())
 		}
 	}
-
+	resp.Header.Set("Content-Encoding", "*")
 	return resp, err
 }
 
