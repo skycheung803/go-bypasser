@@ -82,16 +82,11 @@ func (b *StandardRoundTripper) RoundTrip(req *http.Request) (*http.Response, err
 		return nil, err
 	}
 
-	//log.Println(fReq.Header.Get("User-Agent"))
-
 	fReq.Header = fhttp.Header(req.Header)
 	fReq.Trailer = fhttp.Header(req.Trailer)
 	fReq.Form = req.Form
 	fReq.MultipartForm = req.MultipartForm
 	fReq.PostForm = req.PostForm
-
-	//log.Println(req.Header.Get("User-Agent"))
-	//log.Println(fReq.Header.Get("User-Agent"))
 
 	fResp, err := b.Client.Do(fReq)
 	if err != nil {
@@ -191,7 +186,6 @@ func (b *BrowserRoundTripper) RoundTrip(req *http.Request) (*http.Response, erro
 	timeout.WaitLoad()
 	timeout.WaitDOMStable(300*time.Millisecond, 0)
 	timeout.WaitRequestIdle(time.Second, nil, nil, nil)
-	//page.MustWaitStable()
 
 	html, err := page.HTML()
 	if err != nil {
