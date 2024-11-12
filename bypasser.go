@@ -18,22 +18,23 @@ import (
 )
 
 type Bypasser struct {
-	Mode            string
+	BrowserMode     bool
 	BrowserHeadless bool
-
-	Transport http.RoundTripper
+	Transport       http.RoundTripper
 }
 
-func NewBypasser(mode string, options ...func(*Bypasser)) (*Bypasser, error) {
-	b := &Bypasser{Mode: mode}
-	b.BrowserHeadless = true //default
+func NewBypasser(options ...func(*Bypasser)) (*Bypasser, error) {
+	b := &Bypasser{
+		BrowserMode:     false,
+		BrowserHeadless: true,
+	} //default
 
 	for _, f := range options {
 		f(b)
 	}
 
 	var err error
-	if mode == "browser" {
+	if b.BrowserMode {
 		b.Transport, err = NewBrowserRoundTripper(b.BrowserHeadless)
 	} else {
 		b.Transport, err = NewStandardRoundTripper(tlsclient.WithClientProfile(profiles.Chrome_124))
@@ -44,6 +45,13 @@ func NewBypasser(mode string, options ...func(*Bypasser)) (*Bypasser, error) {
 	}
 
 	return b, err
+}
+
+// WithBrowserMode
+func WithBrowserMode(mode bool) func(*Bypasser) {
+	return func(b *Bypasser) {
+		b.BrowserMode = mode
+	}
 }
 
 // WithBrowserHeadless
@@ -74,11 +82,16 @@ func (b *StandardRoundTripper) RoundTrip(req *http.Request) (*http.Response, err
 		return nil, err
 	}
 
+	//log.Println(fReq.Header.Get("User-Agent"))
+
 	fReq.Header = fhttp.Header(req.Header)
 	fReq.Trailer = fhttp.Header(req.Trailer)
 	fReq.Form = req.Form
 	fReq.MultipartForm = req.MultipartForm
 	fReq.PostForm = req.PostForm
+
+	//log.Println(req.Header.Get("User-Agent"))
+	//log.Println(fReq.Header.Get("User-Agent"))
 
 	fResp, err := b.Client.Do(fReq)
 	if err != nil {

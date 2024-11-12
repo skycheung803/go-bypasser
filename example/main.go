@@ -9,31 +9,27 @@ import (
 
 	tlsclient "github.com/bogdanfinn/tls-client"
 	"github.com/bogdanfinn/tls-client/profiles"
+	"github.com/gocolly/colly/v2"
+	"github.com/gocolly/colly/v2/extensions"
 	"github.com/skycheung803/go-bypasser"
 )
 
-/*
-//standardMode
-//stealthMode
-//BrowserMode
-*/
 func main() {
 	log.Println("starting~~~~")
-	bypasserTest("standard")
+	//bypasserTest()
 	//log.Println("bypasser finish~~~~")
-	bypasserTest("browser")
-	log.Println("bypasser finish~~~~")
-
+	//bypasserTest("browser")
+	//log.Println("bypasser finish~~~~")
 	//standard()
 	//log.Println("standard finish~~~~")
-
 	//browser()
-	//log.Println("browser finish~~~~")
+	gocolly()
+	log.Println("browser finish~~~~")
 }
 
-func bypasserTest(mode string) {
-	bypass, err := bypasser.NewBypasser(mode)
-	//bypass, err := bypasser.NewBypasser(mode, bypasser.WithBrowserHeadless(false))
+func bypasserTest() {
+	bypass, err := bypasser.NewBypasser()
+	//bypass, err := bypasser.NewBypasser(bypasser.WithBrowserMode(true), bypasser.WithBrowserHeadless(false))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -101,7 +97,6 @@ func browser() {
 	}
 
 	req, err := http.NewRequest("GET", "https://httpbin.org/anything", nil)
-	//req, err := http.NewRequest("GET", "https://jp.mercari.com/item/m70073826536", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -128,5 +123,28 @@ func browser() {
 	fmt.Println(string(bodyText))
 
 	//runtime.Goexit()
+}
 
+func gocolly() {
+	c := colly.NewCollector()
+	extensions.RandomUserAgent(c)
+
+	//bypass, err := bypasser.NewBypasser()
+	//bypass, err := bypasser.NewBypasser(bypasser.WithBrowserMode(true), bypasser.WithBrowserHeadless(false))
+	bypass, err := bypasser.NewBypasser(bypasser.WithBrowserMode(true))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	c.WithTransport(bypass.Transport)
+
+	c.OnResponse(func(r *colly.Response) {
+		fmt.Println(string(r.Body))
+	})
+
+	c.OnRequest(func(r *colly.Request) {
+		fmt.Println("Visiting", r.URL)
+	})
+
+	c.Visit("https://httpbin.org/anything")
 }

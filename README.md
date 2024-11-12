@@ -7,7 +7,7 @@ A Go's http.RoundTripper implementation that provides a wrapper for tls-client a
 - Customized TLS Extensions.
 - Built-in fingerprint profiles of mainstream browsers.
 - Implements Go's http.RoundTripper so can be used in different 3rd-party HTTP client libraries.
-- Browsers Mode (default chrome headless)
+- Browsers Mode (The Browser Mode controls the interaction with a headless Chromium browser. Enabling the browser mode allows to download a Chromium browser once and use it to render JavaScript-heavy pages.)
 
 ## Install
 
@@ -34,8 +34,8 @@ import (
 
 func main() {
 	// Create a Bypasser that implements the http.RoundTripper interface
-	bypass, err := bypasser.NewBypasser(mode)
-	//bypass, err := bypasser.NewBypasser(mode, bypasser.WithBrowserHeadless(false))
+	//bypass, err := bypasser.NewBypasser()
+	//bypass, err := bypasser.NewBypasser(bypasser.WithBrowserMode(true),bypasser.WithBrowserHeadless(false))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,4 +65,4 @@ func main() {
 ```
 
 ## credits  
-__go-bypasser__ would not have been possible without some of [these amazing projects](./go.mod): [tls-client](github.com/bogdanfinn/tls-client), [go-rod](https://github.com/go-rod/rod), [fhttp](github.com/bogdanfinn/fhttp)
+__go-bypasser__ would not have been possible without some of [these amazing projects](./go.mod): [tls-client](github.com/bogdanfinn/tls-client), [go-rod](https://github.com/go-rod/rod), [fhttp](https://github.com/useflyent/fhttp)
