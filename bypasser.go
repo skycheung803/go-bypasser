@@ -18,15 +18,16 @@ import (
 )
 
 type Bypasser struct {
-	BrowserMode     bool
-	BrowserHeadless bool
-	Transport       http.RoundTripper
+	browserMode     bool
+	browserHeadless bool
+
+	Transport http.RoundTripper
 }
 
 func NewBypasser(options ...func(*Bypasser)) (*Bypasser, error) {
 	b := &Bypasser{
-		BrowserMode:     false,
-		BrowserHeadless: true,
+		browserMode:     false,
+		browserHeadless: true,
 	} //default
 
 	for _, f := range options {
@@ -34,8 +35,8 @@ func NewBypasser(options ...func(*Bypasser)) (*Bypasser, error) {
 	}
 
 	var err error
-	if b.BrowserMode {
-		b.Transport, err = NewBrowserRoundTripper(b.BrowserHeadless)
+	if b.browserMode {
+		b.Transport, err = NewBrowserRoundTripper(b.browserHeadless)
 	} else {
 		b.Transport, err = NewStandardRoundTripper(tlsclient.WithClientProfile(profiles.Chrome_124))
 	}
@@ -50,14 +51,14 @@ func NewBypasser(options ...func(*Bypasser)) (*Bypasser, error) {
 // WithBrowserMode
 func WithBrowserMode(mode bool) func(*Bypasser) {
 	return func(b *Bypasser) {
-		b.BrowserMode = mode
+		b.browserMode = mode
 	}
 }
 
 // WithBrowserHeadless
 func WithBrowserHeadless(headless bool) func(*Bypasser) {
 	return func(b *Bypasser) {
-		b.BrowserHeadless = headless
+		b.browserHeadless = headless
 	}
 }
 
@@ -112,8 +113,9 @@ func (b *StandardRoundTripper) RoundTrip(req *http.Request) (*http.Response, err
 }
 
 type BrowserRoundTripper struct {
-	Headless bool
-	Browser  *rod.Browser
+	headless bool
+
+	Browser *rod.Browser
 }
 
 func newBrowser(headless bool) (*rod.Browser, error) {
@@ -138,7 +140,7 @@ func NewBrowserRoundTripper(headless bool) (*BrowserRoundTripper, error) {
 	}
 
 	return &BrowserRoundTripper{
-		Headless: headless,
+		headless: headless,
 		Browser:  browser,
 	}, nil
 }
