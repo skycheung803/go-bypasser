@@ -193,10 +193,11 @@ func (b *BrowserRoundTripper) RoundTrip(req *http.Request) (*http.Response, erro
 	}
 
 	resp := &http.Response{
-		StatusCode: 200,
-		Status:     "200 OK",
-		Body:       io.NopCloser(strings.NewReader(html)),
-		Header:     http.Header{"Content-Type": []string{"text/html"}},
+		StatusCode:   200,
+		Status:       "200 OK",
+		Body:         io.NopCloser(strings.NewReader(html)),
+		Header:       http.Header{"Content-Type": []string{"text/html"}},
+		Uncompressed: true,
 	}
 
 	if networkResponse != nil {
@@ -205,11 +206,10 @@ func (b *BrowserRoundTripper) RoundTrip(req *http.Request) (*http.Response, erro
 		resp.Header = http.Header{}
 
 		for k, v := range networkResponse.Headers {
-
 			resp.Header.Set(k, v.String())
 		}
 	}
-	resp.Header.Set("Content-Encoding", "*")
+	//resp.Header.Set("Content-Encoding", "*")
 	return resp, err
 }
 
