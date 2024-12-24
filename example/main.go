@@ -7,10 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	tlsclient "github.com/bogdanfinn/tls-client"
-	"github.com/bogdanfinn/tls-client/profiles"
 	"github.com/gocolly/colly/v2"
-	"github.com/gocolly/colly/v2/extensions"
 	"github.com/skycheung803/go-bypasser"
 )
 
@@ -58,7 +55,7 @@ func bypasserTest() {
 }
 
 func standard() {
-	tr, err := bypasser.NewStandardRoundTripper(tlsclient.WithClientProfile(profiles.Chrome_124))
+	tr, err := bypasser.NewStandardRoundTripper(false)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -90,7 +87,6 @@ func standard() {
 }
 
 func browser() {
-
 	tr, err := bypasser.NewBrowserRoundTripper(false)
 	if err != nil {
 		log.Fatal(err)
@@ -127,16 +123,26 @@ func browser() {
 
 func gocolly() {
 	c := colly.NewCollector()
-	extensions.RandomUserAgent(c)
+	//extensions.RandomUserAgent(c)
 
-	//bypass, err := bypasser.NewBypasser()
+	bypass, err := bypasser.NewBypasser()
 	//bypass, err := bypasser.NewBypasser(bypasser.WithBrowserMode(true), bypasser.WithBrowserHeadless(false))
-	bypass, err := bypasser.NewBypasser(bypasser.WithBrowserMode(true))
+	//bypass, err := bypasser.NewBypasser(bypasser.WithBrowserMode(true))
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	c.OnRequest(func(r *colly.Request) {
+		//fmt.Println("Visiting", r.URL)
+		//r.Headers.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36")
+	})
+
 	c.WithTransport(bypass.Transport)
+
+	c.OnError(func(r *colly.Response, err error) {
+		fmt.Print(r.Headers, "\n")
+		fmt.Print(err.Error(), "\n")
+	})
 
 	c.OnResponse(func(r *colly.Response) {
 		fmt.Println(string(r.Body))
@@ -146,5 +152,6 @@ func gocolly() {
 		fmt.Println("Visiting", r.URL)
 	})
 
-	c.Visit("https://httpbin.org/anything")
+	c.Visit("https://httpbin.org/headers")
+	//c.Visit("https://jp.mercari.com/item/m93059519050")
 }

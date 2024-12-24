@@ -8,16 +8,15 @@ import (
 	"sync"
 	"time"
 
-	fhttp "github.com/bogdanfinn/fhttp"
-	tlsclient "github.com/bogdanfinn/tls-client"
-	"github.com/bogdanfinn/tls-client/profiles"
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/launcher"
 	"github.com/go-rod/rod/lib/proto"
 	"github.com/go-rod/stealth"
+	"github.com/imroc/req/v3"
 )
 
 type Bypasser struct {
+	DevMode         bool
 	browserMode     bool
 	browserHeadless bool
 
@@ -26,6 +25,7 @@ type Bypasser struct {
 
 func NewBypasser(options ...func(*Bypasser)) (*Bypasser, error) {
 	b := &Bypasser{
+		DevMode:         false,
 		browserMode:     false,
 		browserHeadless: true,
 	} //default
@@ -38,7 +38,7 @@ func NewBypasser(options ...func(*Bypasser)) (*Bypasser, error) {
 	if b.browserMode {
 		b.Transport, err = NewBrowserRoundTripper(b.browserHeadless)
 	} else {
-		b.Transport, err = NewStandardRoundTripper(tlsclient.WithClientProfile(profiles.Chrome_124))
+		b.Transport, err = NewStandardRoundTripper(b.DevMode)
 	}
 
 	if err != nil {
@@ -46,6 +46,13 @@ func NewBypasser(options ...func(*Bypasser)) (*Bypasser, error) {
 	}
 
 	return b, err
+}
+
+// WithDevMode
+func WithDevMode(dev bool) func(*Bypasser) {
+	return func(b *Bypasser) {
+		b.DevMode = dev
+	}
 }
 
 // WithBrowserMode
@@ -63,59 +70,59 @@ func WithBrowserHeadless(headless bool) func(*Bypasser) {
 }
 
 type StandardRoundTripper struct {
-	Client tlsclient.HttpClient
+	Client *req.Client
 }
 
-func NewStandardRoundTripper(httpClientOption ...tlsclient.HttpClientOption) (*StandardRoundTripper, error) {
-	c, err := tlsclient.NewHttpClient(tlsclient.NewNoopLogger(), httpClientOption...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating client: %w", err)
+func NewStandardRoundTripper(devMode bool) (*StandardRoundTripper, error) {
+	client := req.C().ImpersonateChrome()
+	if devMode {
+		client.DevMode()
 	}
 
 	return &StandardRoundTripper{
-		Client: c,
+		Client: client,
 	}, nil
 }
 
-func (b *StandardRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	fReq, err := fhttp.NewRequest(req.Method, req.URL.String(), req.Body)
-	if err != nil {
-		return nil, err
+func (b *StandardRoundTripper) RoundTrip(request *http.Request) (response *http.Response, err error) {
+	for key, values := range request.Header {
+		for _, value := range values {
+			if key != "User-Agent" && key != "Cookie" {
+				b.Client.SetCommonHeader(key, value)
+			}
+		}
+	}
+	b.Client.SetCommonCookies(request.Cookies()...)
+
+	var resp *req.Response
+	if request.Method == http.MethodHead {
+		resp, err = b.Client.R().Head(request.URL.String())
 	}
 
-	fReq.Header = fhttp.Header(req.Header)
-	fReq.Trailer = fhttp.Header(req.Trailer)
-	fReq.Form = req.Form
-	fReq.MultipartForm = req.MultipartForm
-	fReq.PostForm = req.PostForm
-
-	fResp, err := b.Client.Do(fReq)
-	if err != nil {
-		return nil, fmt.Errorf("error fetching response: %w", err)
+	if request.Method == http.MethodGet {
+		resp, err = b.Client.R().Get(request.URL.String())
 	}
 
-	return &http.Response{
-		Status:           fResp.Status,
-		StatusCode:       fResp.StatusCode,
-		Proto:            fResp.Proto,
-		ProtoMajor:       fResp.ProtoMajor,
-		ProtoMinor:       fResp.ProtoMinor,
-		Header:           http.Header(fResp.Header),
-		Body:             fResp.Body,
-		ContentLength:    fResp.ContentLength,
-		TransferEncoding: fResp.TransferEncoding,
-		Close:            fResp.Close,
-		Uncompressed:     fResp.Uncompressed,
-		Trailer:          http.Header(fResp.Trailer),
-		Request:          req,
-		TLS:              nil,
-	}, nil
+	if request.Method == http.MethodPost {
+		resp, err = b.Client.R().SetBody(request.Body).Post(request.URL.String())
+	}
+
+	if request.Method == http.MethodPut {
+		resp, err = b.Client.R().SetBody(request.Body).Put(request.URL.String())
+	}
+
+	if request.Method == http.MethodDelete {
+		resp, err = b.Client.R().Delete(request.URL.String())
+	}
+
+	response = resp.Response
+	return response, err
+
 }
 
 type BrowserRoundTripper struct {
 	headless bool
-
-	Browser *rod.Browser
+	Browser  *rod.Browser
 }
 
 func newBrowser(headless bool) (*rod.Browser, error) {
