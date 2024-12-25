@@ -55,12 +55,12 @@ func bypasserTest() {
 }
 
 func standard() {
-	tr, err := bypasser.NewStandardRoundTripper(false)
+
+	tr, err := bypasser.NewStandardRoundTripper(bypasser.WithProxyX("http://127.0.0.1:8888"))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	//tr := bypasser.StandardRoundTripper{}
 	client := &http.Client{
 		Timeout:   10 * time.Second,
 		Transport: tr,
@@ -97,10 +97,6 @@ func browser() {
 		log.Fatal(err)
 	}
 
-	//req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36")
-	//req.Header.Set("my-key", "my-value33333") //Error, has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-	//tr := &http.Transport{}
-
 	client := &http.Client{
 		Timeout:   30 * time.Second,
 		Transport: tr,
@@ -128,14 +124,10 @@ func gocolly() {
 	bypass, err := bypasser.NewBypasser()
 	//bypass, err := bypasser.NewBypasser(bypasser.WithBrowserMode(true), bypasser.WithBrowserHeadless(false))
 	//bypass, err := bypasser.NewBypasser(bypasser.WithBrowserMode(true))
+	//bypass, err := bypasser.NewBypasser(bypasser.WithProxy("https://127.0.0.1:8888"))
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	c.OnRequest(func(r *colly.Request) {
-		//fmt.Println("Visiting", r.URL)
-		//r.Headers.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36")
-	})
 
 	c.WithTransport(bypass.Transport)
 
@@ -152,6 +144,5 @@ func gocolly() {
 		fmt.Println("Visiting", r.URL)
 	})
 
-	c.Visit("https://httpbin.org/headers")
-	//c.Visit("https://jp.mercari.com/item/m93059519050")
+	c.Visit("https://httpbin.org/anything")
 }

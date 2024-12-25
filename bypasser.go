@@ -20,10 +20,41 @@ type Bypasser struct {
 	browserMode     bool
 	browserHeadless bool
 
+	proxyURL string
+
 	Transport http.RoundTripper
 }
 
-func NewBypasser(options ...func(*Bypasser)) (*Bypasser, error) {
+type BypasserOption func(*Bypasser)
+
+// WithDevMode
+func WithDevMode(dev bool) BypasserOption {
+	return func(b *Bypasser) {
+		b.DevMode = dev
+	}
+}
+
+// WithBrowserMode
+func WithBrowserMode(mode bool) BypasserOption {
+	return func(b *Bypasser) {
+		b.browserMode = mode
+	}
+}
+
+// WithBrowserHeadless
+func WithBrowserHeadless(headless bool) BypasserOption {
+	return func(b *Bypasser) {
+		b.browserHeadless = headless
+	}
+}
+
+func WithProxy(proxyURL string) BypasserOption {
+	return func(b *Bypasser) {
+		b.proxyURL = proxyURL
+	}
+}
+
+func NewBypasser(options ...BypasserOption) (*Bypasser, error) {
 	b := &Bypasser{
 		DevMode:         false,
 		browserMode:     false,
@@ -38,7 +69,13 @@ func NewBypasser(options ...func(*Bypasser)) (*Bypasser, error) {
 	if b.browserMode {
 		b.Transport, err = NewBrowserRoundTripper(b.browserHeadless)
 	} else {
-		b.Transport, err = NewStandardRoundTripper(b.DevMode)
+		so := []StandardOption{
+			WithDebug(b.DevMode),
+		}
+		if b.proxyURL != "" {
+			so = append(so, WithProxyX(b.proxyURL))
+		}
+		b.Transport, err = NewStandardRoundTripper(so...)
 	}
 
 	if err != nil {
@@ -48,40 +85,34 @@ func NewBypasser(options ...func(*Bypasser)) (*Bypasser, error) {
 	return b, err
 }
 
-// WithDevMode
-func WithDevMode(dev bool) func(*Bypasser) {
-	return func(b *Bypasser) {
-		b.DevMode = dev
-	}
-}
-
-// WithBrowserMode
-func WithBrowserMode(mode bool) func(*Bypasser) {
-	return func(b *Bypasser) {
-		b.browserMode = mode
-	}
-}
-
-// WithBrowserHeadless
-func WithBrowserHeadless(headless bool) func(*Bypasser) {
-	return func(b *Bypasser) {
-		b.browserHeadless = headless
-	}
-}
-
 type StandardRoundTripper struct {
 	Client *req.Client
 }
 
-func NewStandardRoundTripper(devMode bool) (*StandardRoundTripper, error) {
+type StandardOption func(*StandardRoundTripper)
+
+func WithDebug(debug bool) StandardOption {
+	return func(b *StandardRoundTripper) {
+		if debug {
+			b.Client.DevMode()
+		}
+	}
+}
+
+func WithProxyX(proxyURL string) StandardOption {
+	return func(b *StandardRoundTripper) {
+		b.Client.SetProxyURL(proxyURL)
+	}
+}
+
+func NewStandardRoundTripper(options ...StandardOption) (*StandardRoundTripper, error) {
 	client := req.C().ImpersonateChrome()
-	if devMode {
-		client.DevMode()
+	b := &StandardRoundTripper{Client: client}
+	for _, f := range options {
+		f(b)
 	}
 
-	return &StandardRoundTripper{
-		Client: client,
-	}, nil
+	return b, nil
 }
 
 func (b *StandardRoundTripper) RoundTrip(request *http.Request) (response *http.Response, err error) {
