@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gocolly/colly/v2"
+	"github.com/skycheung803/colly"
 	"github.com/skycheung803/go-bypasser"
 )
 
@@ -121,8 +121,8 @@ func gocolly() {
 	c := colly.NewCollector()
 	//extensions.RandomUserAgent(c)
 
-	bypass, err := bypasser.NewBypasser()
-	//bypass, err := bypasser.NewBypasser(bypasser.WithBrowserMode(true), bypasser.WithBrowserHeadless(false))
+	//_, err := bypasser.NewBypasser()
+	bypass, err := bypasser.NewBypasser(bypasser.WithBrowserMode(true), bypasser.WithBrowserHeadless(false), bypasser.WithInsecureSkipVerify(true))
 	//bypass, err := bypasser.NewBypasser(bypasser.WithBrowserMode(true))
 	//bypass, err := bypasser.NewBypasser(bypasser.WithProxy("https://127.0.0.1:8888"))
 	if err != nil {
@@ -145,4 +145,6 @@ func gocolly() {
 	})
 
 	c.Visit("https://httpbin.org/anything")
+	//c.Post("https://httpbin.org/anything?b=1", map[string]string{"key": "value"})
+	//c.PostRaw("https://httpbin.org/anything?a=1", []byte("a=2"))
 }

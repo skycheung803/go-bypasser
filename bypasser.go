@@ -20,9 +20,9 @@ type Bypasser struct {
 	browserMode     bool
 	browserHeadless bool
 
-	proxyURL string
-
-	Transport http.RoundTripper
+	proxyURL           string
+	InsecureSkipVerify bool
+	Transport          http.RoundTripper
 }
 
 type BypasserOption func(*Bypasser)
@@ -54,6 +54,12 @@ func WithProxy(proxyURL string) BypasserOption {
 	}
 }
 
+func WithInsecureSkipVerify(isSkip bool) BypasserOption {
+	return func(b *Bypasser) {
+		b.InsecureSkipVerify = isSkip
+	}
+}
+
 func NewBypasser(options ...BypasserOption) (*Bypasser, error) {
 	b := &Bypasser{
 		DevMode:         false,
@@ -74,6 +80,9 @@ func NewBypasser(options ...BypasserOption) (*Bypasser, error) {
 		}
 		if b.proxyURL != "" {
 			so = append(so, WithProxyX(b.proxyURL))
+		}
+		if b.InsecureSkipVerify {
+			so = append(so, EnableInsecureSkipVerify())
 		}
 		b.Transport, err = NewStandardRoundTripper(so...)
 	}
@@ -102,6 +111,12 @@ func WithDebug(debug bool) StandardOption {
 func WithProxyX(proxyURL string) StandardOption {
 	return func(b *StandardRoundTripper) {
 		b.Client.SetProxyURL(proxyURL)
+	}
+}
+
+func EnableInsecureSkipVerify() StandardOption {
+	return func(b *StandardRoundTripper) {
+		b.Client.EnableInsecureSkipVerify()
 	}
 }
 

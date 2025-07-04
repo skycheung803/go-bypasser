@@ -5,17 +5,18 @@ go 1.23.2
 require (
 	github.com/go-rod/rod v0.116.2
 	github.com/go-rod/stealth v0.4.9
-	github.com/gocolly/colly/v2 v2.1.0
 	github.com/imroc/req/v3 v3.49.0
+	github.com/skycheung803/colly v0.0.0-20241120032841-7529673c43ba
 )
 
 require (
 	github.com/PuerkitoBio/goquery v1.5.1 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
-	github.com/andybalholm/cascadia v1.2.0 // indirect
+	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/antchfx/htmlquery v1.2.3 // indirect
-	github.com/antchfx/xmlquery v1.2.4 // indirect
-	github.com/antchfx/xpath v1.1.8 // indirect
+	github.com/antchfx/xmlquery v1.3.4 // indirect
+	github.com/antchfx/xpath v1.1.10 // indirect
+	github.com/bits-and-blooms/bitset v1.2.2-0.20220111210104-dfa3e347c392 // indirect
 	github.com/cloudflare/circl v1.5.0 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
@@ -26,6 +27,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
+	github.com/nlnwa/whatwg-url v0.1.2 // indirect
 	github.com/onsi/ginkgo/v2 v2.22.0 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/quic-go/quic-go v0.48.2 // indirect
